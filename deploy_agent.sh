@@ -235,7 +235,45 @@ run_application() {
 }
 
 archive_logs() {
-    echo "Archive is not built yet."
+    read -p "Enter the name of the project to archive: " name
+    project_dir="attendance_tracker_$name"
+    if [ ! -d "$project_dir" ]; then
+        echo "Error: $project_dir was not found. Deploy it first."
+        return
+    fi
+
+    stamp=$(date +%Y%m%d_%H%M%S)
+    archived=0
+
+    if [ -f "$project_dir/reports/attendance.log" ]; then
+        mkdir -p "$project_dir/archives/attendance"
+        target="$project_dir/archives/attendance/attendance_$stamp.log"
+        if cp "$project_dir/reports/attendance.log" "$target"; then
+            echo "Archived attendance.log -> $target"
+            archived=1
+        else
+            echo "Error: could not archive attendance.log"
+        fi
+    else
+        echo "No attendance.log found, skipping it."
+    fi
+
+    if [ -f "$project_dir/reports/absent.log" ]; then
+        mkdir -p "$project_dir/archives/absent"
+        target="$project_dir/archives/absent/absent_$stamp.log"
+        if cp "$project_dir/reports/absent.log" "$target"; then
+            echo "Archived absent.log -> $target"
+            archived=1
+        else
+            echo "Error: could not archive absent.log"
+        fi
+    else
+        echo "No absent.log found (maybe nobody was absent), skipping it."
+    fi
+
+    if [ "$archived" -eq 0 ]; then
+        echo "Nothing was archived. Run the application first."
+    fi
 }
 
 show_menu() {
