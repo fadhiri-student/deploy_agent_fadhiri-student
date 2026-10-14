@@ -115,7 +115,3 @@ Whatever had been created when the interrupt came. For an interrupt during the r
 - Ran the application after deployment, marked students, and confirmed that `assets.csv` counts changed and that `reports/attendance.log` and `reports/absent.log` were created.
 - Ran the archive feature with both logs, with only one log (no `absent.log`), and with a project that does not exist.
 - Tested Ctrl+C and Ctrl+Z by hand and checked that the zip exists, that its contents are correct, and that the folder is gone.
-
-## Run-through video
-
-Video link: (add the link here)
