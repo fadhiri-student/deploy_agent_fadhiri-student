@@ -33,8 +33,62 @@ handle_interrupt() {
     exit 130
 }
 
+ask_project_name() {
+    while true; do
+        read -p "Enter a name for the project: " name
+        case "$name" in
+            "") echo "The name cannot be empty." ;;
+            *[!A-Za-z0-9_-]*) echo "Please use only letters, numbers, - and _" ;;
+            *) break ;;
+        esac
+    done
+
+    project_dir="attendance_tracker_$name"
+
+    if [ -d "$project_dir" ]; then
+        echo "The folder $project_dir already exists."
+        read -p "Do you want to overwrite it? (y/n): " answer
+        if [ "$answer" != "y" ]; then
+            echo "Deployment cancelled. Nothing was changed."
+            return 1
+        fi
+        rm -rf "$project_dir" || { echo "Error: could not remove the old folder."; return 1; }
+    fi
+    return 0
+}
+
+create_structure() {
+    deploying="yes"
+    mkdir -p "$project_dir/Helpers" "$project_dir/reports"
+    if [ $? -ne 0 ]; then
+        echo "Error: could not create the folders (permission denied?)."
+        rm -rf "$project_dir"
+        deploying="no"
+        return 1
+    fi
+
+    cp templates/attendance_checker.py "$project_dir/"
+    cp templates/config.json "$project_dir/Helpers/"
+    if [ $? -ne 0 ]; then
+        echo "Error: could not copy the template files."
+        rm -rf "$project_dir"
+        deploying="no"
+        return 1
+    fi
+
+    echo "Created the folders and copied attendance_checker.py and config.json."
+    return 0
+}
+
 deploy_project() {
-    echo "Deploy is not built yet."
+    trap handle_interrupt SIGINT SIGTSTP
+
+    if ask_project_name && create_structure; then
+        echo "Structure for $project_dir is ready."
+    fi
+
+    deploying="no"
+    trap - SIGINT SIGTSTP
 }
 
 run_application() {
