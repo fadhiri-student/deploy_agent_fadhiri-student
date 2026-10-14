@@ -138,19 +138,100 @@ build_roster() {
     return 0
 }
 
+set_permissions() {
+    chmod +x "$project_dir/attendance_checker.py" && chmod 600 "$project_dir/Helpers/config.json"
+    if [ $? -ne 0 ]; then
+        echo "Error: could not set the file permissions."
+        return 1
+    fi
+    echo "Permissions set:"
+    ls -l "$project_dir/attendance_checker.py" "$project_dir/Helpers/config.json"
+    return 0
+}
+
+ask_threshold() {
+    while true; do
+        read -p "New $1 threshold (default $2): " value
+        if [ -z "$value" ]; then
+            value=$2
+        fi
+        case "$value" in
+            *[!0-9]*)
+                echo "Please enter a whole number."
+                continue
+                ;;
+            ????*)
+                echo "That number is too big."
+                continue
+                ;;
+        esac
+        if [ "$value" -ge 0 ] && [ "$value" -le 100 ]; then
+            break
+        fi
+        echo "The number must be between 0 and 100."
+    done
+}
+
+update_thresholds() {
+    config="$project_dir/Helpers/config.json"
+
+    read -p "Do you want to update the attendance thresholds? (y/n): " answer
+    if [ "$answer" != "y" ]; then
+        echo "Keeping the default thresholds (warning 75, failure 50)."
+        return 0
+    fi
+
+    while true; do
+        ask_threshold "warning" 75
+        warning=$value
+        ask_threshold "failure" 50
+        failure=$value
+        if [ "$failure" -lt "$warning" ]; then
+            break
+        fi
+        echo "Failure must be lower than warning. Please enter both again."
+    done
+
+    sed -i "s/\"warning\": [0-9]*/\"warning\": $warning/" "$config" || return 1
+    sed -i "s/\"failure\": [0-9]*/\"failure\": $failure/" "$config" || return 1
+
+    echo "Thresholds updated:"
+    grep -E '"warning"|"failure"' "$config"
+    return 0
+}
+
+start_app() {
+    (cd "$1" && python3 attendance_checker.py)
+}
+
 deploy_project() {
     trap handle_interrupt SIGINT SIGTSTP
 
-    if ask_project_name && create_structure && build_roster; then
-        echo "Project $project_dir is ready so far."
+    if ask_project_name && create_structure && build_roster && set_permissions && update_thresholds; then
+        deploying="no"
+        trap - SIGINT SIGTSTP
+        echo ""
+        echo "Deployment finished. Starting the app to check that it works..."
+        start_app "$project_dir"
+        return
     fi
 
+    if [ "$deploying" = "yes" ]; then
+        echo "Deployment failed, removing the incomplete folder."
+        rm -rf "$project_dir"
+    fi
     deploying="no"
     trap - SIGINT SIGTSTP
 }
 
 run_application() {
-    echo "Run is not built yet."
+    read -p "Enter the name of the project to run: " name
+    project_dir="attendance_tracker_$name"
+    if [ ! -d "$project_dir" ]; then
+        echo "Error: $project_dir was not found. Deploy it first."
+        return
+    fi
+    start_app "$project_dir"
 }
 
 archive_logs() {
@@ -170,7 +251,7 @@ check_tools
 
 while true; do
     show_menu
-    read -p "Choose an option (1-4): " choice
+    read -p "Choose an option (1-4): " choice || { echo ""; echo "No more input. Goodbye."; exit 0; }
     case "$choice" in
         1) deploy_project ;;
         2) run_application ;;
