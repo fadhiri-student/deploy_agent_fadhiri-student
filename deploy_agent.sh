@@ -18,6 +18,10 @@ check_tools() {
     echo "python3 and zip are installed."
 }
 
+read_input() {
+    read -p "$1" "$2" || handle_interrupt
+}
+
 handle_interrupt() {
     echo ""
     echo "Deployment was interrupted."
@@ -35,7 +39,7 @@ handle_interrupt() {
 
 ask_project_name() {
     while true; do
-        read -p "Enter a name for the project: " name
+        read_input "Enter a name for the project: " name
         case "$name" in
             "") echo "The name cannot be empty." ;;
             *[!A-Za-z0-9_-]*) echo "Please use only letters, numbers, - and _" ;;
@@ -47,7 +51,7 @@ ask_project_name() {
 
     if [ -d "$project_dir" ]; then
         echo "The folder $project_dir already exists."
-        read -p "Do you want to overwrite it? (y/n): " answer
+        read_input "Do you want to overwrite it? (y/n): " answer
         if [ "$answer" != "y" ]; then
             echo "Deployment cancelled. Nothing was changed."
             return 1
@@ -83,7 +87,7 @@ create_structure() {
 ask_count() {
     max=$1
     while true; do
-        read -p "How many students (1-$max)? " count
+        read_input "How many students (1-$max)? " count
         case "$count" in
             ""|*[!0-9]*)
                 echo "Please enter a number."
@@ -103,7 +107,7 @@ build_roster() {
         echo "How do you want to build the student list?"
         echo "A) Copy students from the template"
         echo "B) Generate a fresh list (everyone starts at 0)"
-        read -p "Choose A or B: " option
+        read_input "Choose A or B: " option
         option=$(echo "$option" | tr 'a-z' 'A-Z')
         if [ "$option" = "A" ] || [ "$option" = "B" ]; then
             break
@@ -151,7 +155,7 @@ set_permissions() {
 
 ask_threshold() {
     while true; do
-        read -p "New $1 threshold (default $2): " value
+        read_input "New $1 threshold (default $2): " value
         if [ -z "$value" ]; then
             value=$2
         fi
@@ -175,7 +179,7 @@ ask_threshold() {
 update_thresholds() {
     config="$project_dir/Helpers/config.json"
 
-    read -p "Do you want to update the attendance thresholds? (y/n): " answer
+    read_input "Do you want to update the attendance thresholds? (y/n): " answer
     if [ "$answer" != "y" ]; then
         echo "Keeping the default thresholds (warning 75, failure 50)."
         return 0
@@ -225,7 +229,7 @@ deploy_project() {
 }
 
 run_application() {
-    read -p "Enter the name of the project to run: " name
+    read_input "Enter the name of the project to run: " name
     project_dir="attendance_tracker_$name"
     if [ ! -d "$project_dir" ]; then
         echo "Error: $project_dir was not found. Deploy it first."
@@ -235,7 +239,7 @@ run_application() {
 }
 
 archive_logs() {
-    read -p "Enter the name of the project to archive: " name
+    read_input "Enter the name of the project to archive: " name
     project_dir="attendance_tracker_$name"
     if [ ! -d "$project_dir" ]; then
         echo "Error: $project_dir was not found. Deploy it first."
