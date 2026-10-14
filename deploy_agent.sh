@@ -80,11 +80,69 @@ create_structure() {
     return 0
 }
 
+ask_count() {
+    max=$1
+    while true; do
+        read -p "How many students (1-$max)? " count
+        case "$count" in
+            ""|*[!0-9]*)
+                echo "Please enter a number."
+                continue
+                ;;
+        esac
+        if [ "$count" -ge 1 ] && [ "$count" -le "$max" ]; then
+            break
+        fi
+        echo "The number must be between 1 and $max."
+    done
+}
+
+build_roster() {
+    while true; do
+        echo ""
+        echo "How do you want to build the student list?"
+        echo "A) Copy students from the template"
+        echo "B) Generate a fresh list (everyone starts at 0)"
+        read -p "Choose A or B: " option
+        option=$(echo "$option" | tr 'a-z' 'A-Z')
+        if [ "$option" = "A" ] || [ "$option" = "B" ]; then
+            break
+        fi
+        echo "Please type A or B."
+    done
+
+    roster="$project_dir/Helpers/assets.csv"
+    config="$project_dir/Helpers/config.json"
+
+    if [ "$option" = "A" ]; then
+        template_rows=$(( $(wc -l < templates/assets.csv) - 1 ))
+        ask_count "$template_rows"
+        head -n $((count + 1)) templates/assets.csv > "$roster" || return 1
+        sessions=5
+    else
+        names=("Amara Uwase" "Brian Mugisha" "Carine Ingabire" "David Nkusi" "Eric Habimana" "Fiona Mukamana" "Grace Uwimana" "Henry Niyonzima" "Irene Kayitesi" "Jean Bosco" "Kevin Mutesi" "Linda Umutoni" "Moses Byiringiro" "Nadine Iradukunda" "Olivier Hakizimana")
+        emails=("amara@example.com" "brian@example.com" "carine@example.com" "david@example.com" "eric@example.com" "fiona@example.com" "grace@example.com" "henry@example.com" "irene@example.com" "jean@example.com" "kevin@example.com" "linda@example.com" "moses@example.com" "nadine@example.com" "olivier@example.com")
+
+        ask_count "${#names[@]}"
+        echo "Email,Names,Attendance Count,Absence Count" > "$roster" || return 1
+        for ((i = 0; i < count; i++)); do
+            echo "${emails[$i]},${names[$i]},0,0" >> "$roster"
+        done
+        sessions=1
+    fi
+
+    sed -i "s/\"total_sessions\": [0-9]*/\"total_sessions\": $sessions/" "$config" || return 1
+
+    echo "Roster created with $count students."
+    grep "total_sessions" "$config"
+    return 0
+}
+
 deploy_project() {
     trap handle_interrupt SIGINT SIGTSTP
 
-    if ask_project_name && create_structure; then
-        echo "Structure for $project_dir is ready."
+    if ask_project_name && create_structure && build_roster; then
+        echo "Project $project_dir is ready so far."
     fi
 
     deploying="no"
