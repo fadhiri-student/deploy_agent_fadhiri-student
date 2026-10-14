@@ -30,7 +30,7 @@ I chose an **interactive menu**. The script shows this menu and loops until you 
 
 ## Feature 1: Deploy
 
-1. **Pre-flight check:** python3 (version is printed) and zip must be installed, and the three template files must exist.
+1. **Pre-flight check:** python3 (version is printed) and zip must be installed.
 2. **Project name:** asked with `read`. Only letters, numbers, `-` and `_` are accepted. The project is created as `attendance_tracker_{name}/`. If that folder already exists the script asks whether to overwrite it, and if the answer is not `y` it stops without changing anything.
 3. **Structure created:**
 
