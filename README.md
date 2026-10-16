@@ -1,3 +1,5 @@
+Video Guide link : https://www.loom.com/share/8416b8ba08dd4a929a89a8b2ebf20d04
+
 # deploy_agent_fadhiri-student
 
 A shell script (`deploy_agent.sh`) that deploys, runs and archives the logs of the Student Attendance Tracker (`attendance_checker.py`). The Python file is never modified, everything is done with shell scripting around it.
