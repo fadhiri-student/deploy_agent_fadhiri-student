@@ -1,3 +1,5 @@
+Video Guide link : https://www.loom.com/share/8416b8ba08dd4a929a89a8b2ebf20d04
+
 # deploy_agent_fadhiri-student
 
 A shell script (`deploy_agent.sh`) that deploys, runs and archives the logs of the Student Attendance Tracker (`attendance_checker.py`). The Python file is never modified, everything is done with shell scripting around it.
@@ -30,7 +32,7 @@ I chose an **interactive menu**. The script shows this menu and loops until you 
 
 ## Feature 1: Deploy
 
-1. **Pre-flight check:** python3 (version is printed) and zip must be installed, and the three template files must exist.
+1. **Pre-flight check:** python3 (version is printed) and zip must be installed.
 2. **Project name:** asked with `read`. Only letters, numbers, `-` and `_` are accepted. The project is created as `attendance_tracker_{name}/`. If that folder already exists the script asks whether to overwrite it, and if the answer is not `y` it stops without changing anything.
 3. **Structure created:**
 
